@@ -6,11 +6,12 @@ import { logger } from "../logger";
 types.setTypeParser(1082, (value) => value);
 
 export const pool = new Pool({
-  connectionString: env.DATABASE_URL,
+  connectionString: env.DATABASE_URL || "",
   max: 10,
   idleTimeoutMillis: 30_000,
   ssl:
-    env.DATABASE_URL.includes("sslmode=require") || env.DATABASE_URL.includes("supabase.co")
+    env.DATABASE_URL &&
+    (env.DATABASE_URL.includes("sslmode=require") || env.DATABASE_URL.includes("supabase"))
       ? { rejectUnauthorized: false }
       : undefined
 });

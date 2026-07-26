@@ -5,7 +5,7 @@ dotenv.config();
 
 const envSchema = z.object({
   BOT_TOKEN: z.string().min(1, "BOT_TOKEN is required"),
-  DATABASE_URL: z.string().min(1, "DATABASE_URL is required"),
+  DATABASE_URL: z.string().optional(),
   TIMEZONE: z.string().default("Asia/Ho_Chi_Minh"),
   PORT: z
     .string()
