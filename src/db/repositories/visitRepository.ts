@@ -1,6 +1,11 @@
+import ws from "ws";
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
 import { query } from "../postgres";
 import { env } from "../../config/env";
+
+if (typeof globalThis.WebSocket === "undefined") {
+  (globalThis as any).WebSocket = ws;
+}
 
 export interface VisitStats {
   today: number;
@@ -13,7 +18,9 @@ const supabaseKey = env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY;
 
 let supabaseClient: SupabaseClient | null = null;
 if (supabaseUrl && supabaseKey) {
-  supabaseClient = createClient(supabaseUrl, supabaseKey);
+  supabaseClient = createClient(supabaseUrl, supabaseKey, {
+    auth: { persistSession: false }
+  });
 }
 
 let isTableInitialized = false;
