@@ -705,6 +705,48 @@
     });
   }
 
+  // ─── Silent Visitor Tracking ───
+  function getOrCreateVisitorId() {
+    var KEY = 'cico_visitor_id';
+    var vid = localStorage.getItem(KEY);
+    if (!vid) {
+      vid = 'v_' + Math.random().toString(36).substring(2, 11) + Date.now().toString(36);
+      localStorage.setItem(KEY, vid);
+    }
+    return vid;
+  }
+
+  function trackVisit() {
+    try {
+      var SESSION_KEY = 'cico_visited_session';
+      var visitorId = getOrCreateVisitorId();
+      var record = false;
+      if (!sessionStorage.getItem(SESSION_KEY)) {
+        record = true;
+        sessionStorage.setItem(SESSION_KEY, '1');
+      }
+
+      fetch('/api/visits', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ record: record, visitor_id: visitorId })
+      })
+        .then(function (res) { return res.json(); })
+        .then(function (data) {
+          if (data && data.ok && data.stats) {
+            if ($('visitToday')) $('visitToday').textContent = data.stats.today.toLocaleString('vi-VN');
+            if ($('visitMonth')) $('visitMonth').textContent = data.stats.month.toLocaleString('vi-VN');
+            if ($('visitTotal')) $('visitTotal').textContent = data.stats.total.toLocaleString('vi-VN');
+          }
+        })
+        .catch(function () {
+          // Silent catch — user experience is never impacted
+        });
+    } catch (e) {
+      // Silent catch
+    }
+  }
+
   // ============================================================
   // INIT
   // ============================================================
@@ -713,6 +755,7 @@
     loadData();
     setupEvents();
     render();
+    trackVisit();
 
     // Live clock update
     clockTimer = setInterval(renderClock, 1000);

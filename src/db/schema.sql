@@ -139,3 +139,15 @@ CREATE TRIGGER trg_user_state_updated_at
 BEFORE UPDATE ON user_state
 FOR EACH ROW
 EXECUTE FUNCTION set_updated_at();
+
+CREATE TABLE IF NOT EXISTS page_visits (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  visited_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  visitor_id TEXT,
+  ip_address TEXT,
+  user_agent TEXT
+);
+
+CREATE INDEX IF NOT EXISTS page_visits_visited_at_idx ON page_visits(visited_at);
+CREATE INDEX IF NOT EXISTS page_visits_visitor_id_idx ON page_visits(visitor_id);
+

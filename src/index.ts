@@ -6,6 +6,7 @@ import { env } from "./config/env";
 import { pool } from "./db/postgres";
 import { logger } from "./logger";
 import { startSchedulers } from "./schedulers";
+import { recordVisit, getVisitStats } from "./db/repositories/visitRepository";
 
 async function configureBotMenu(bot: ReturnType<typeof createTelegramBot>): Promise<void> {
   const commands = [
@@ -34,6 +35,42 @@ async function bootstrap(): Promise<void> {
       service: "telegram-work-bot",
       now: new Date().toISOString()
     });
+  });
+
+  // Simple in-memory rate limiter for visit recording (1 record per IP per 30s)
+  const visitCooldown = new Map<string, number>();
+  const VISIT_COOLDOWN_MS = 30_000;
+
+  // Public endpoint for silent visitor tracking
+  app.post("/api/visits", async (req, res) => {
+    try {
+      const record = Boolean(req.body?.record);
+      const visitorId = req.body?.visitor_id ? String(req.body.visitor_id) : undefined;
+      const rawIp = (req.headers["x-forwarded-for"] as string)?.split(",")[0]?.trim() || req.ip || "unknown";
+      const userAgent = req.headers["user-agent"];
+
+      if (record) {
+        const now = Date.now();
+        const lastVisit = visitCooldown.get(rawIp);
+        if (!lastVisit || now - lastVisit > VISIT_COOLDOWN_MS) {
+          await recordVisit(visitorId, rawIp, userAgent);
+          visitCooldown.set(rawIp, now);
+
+          // Cleanup old entries every 100 inserts to prevent memory leak
+          if (visitCooldown.size > 500) {
+            for (const [ip, ts] of visitCooldown) {
+              if (now - ts > VISIT_COOLDOWN_MS) visitCooldown.delete(ip);
+            }
+          }
+        }
+      }
+
+      const stats = await getVisitStats(env.TIMEZONE);
+      res.json({ ok: true, stats });
+    } catch (error) {
+      logger.error({ error }, "Visit tracking endpoint error");
+      res.status(500).json({ ok: false, error: "Internal server error" });
+    }
   });
 
   // Serve web dashboard (static files from public/)
