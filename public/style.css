@@ -1118,13 +1118,46 @@ body::before {
   margin-top: 2rem;
   padding: 1rem 0;
   display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  border-top: 1px dashed rgba(148, 163, 184, 0.15);
+}
+
+.footer-brand {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  opacity: 0.4;
+  cursor: pointer;
+  user-select: none;
+  transition: opacity 0.2s ease;
+}
+
+.footer-brand:hover {
+  opacity: 0.8;
+}
+
+.footer-stats-content {
+  display: flex;
   align-items: center;
   justify-content: center;
   gap: 1.25rem;
   flex-wrap: wrap;
-  font-size: 0.8rem;
-  color: var(--text-muted);
-  border-top: 1px dashed rgba(148, 163, 184, 0.15);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+  max-height: 50px;
+  opacity: 1;
+}
+
+.app-footer--hidden .footer-stats-content {
+  max-height: 0;
+  opacity: 0;
+  margin: 0;
+  padding: 0;
+  pointer-events: none;
 }
 
 .footer-stat {

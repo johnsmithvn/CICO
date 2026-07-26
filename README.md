@@ -5,18 +5,23 @@ fe: dashboard.render.com
 
 Telegram bot time-tracking cho check-in/check-out, theo KPI 44h/tuan, co burn-down, report theo ngay/tuan/thang, nhac quen checkout, va nhap gio thu cong.
 
-Version: **1.6.1**
+Version: **1.6.2**
 
 ## Stack
 
 - Node.js + TypeScript
 - Telegraf + Express
-- PostgreSQL (Supabase compatible)
+- PostgreSQL (Supabase compatible) / Supabase JS SDK
 - node-cron
 - Docker + Fly.io / Render
 
 ## Features
 
+- **Silent Visitor Tracking System**:
+  - Tự động đếm lượt truy cập web (Hôm nay, Tháng này, Tổng số).
+  - Định danh máy/thiết bị qua `visitor_id` (persistent `localStorage`).
+  - Chống spam 30s/IP & phân biệt phiên qua `sessionStorage`.
+  - Hỗ trợ cả 2 chế độ kết nối: PostgreSQL `DATABASE_URL` hoặc Supabase Client (`SUPABASE_URL` + `SUPABASE_ANON_KEY`).
 - Reply keyboard:
   - `📋 Chấm công` (nut duy nhat)
     - Lan dau trong ngay = **Check-in** (tao session OPEN)
@@ -59,14 +64,16 @@ Copy `.env.example` thanh `.env`:
 
 ```env
 BOT_TOKEN=...
-DATABASE_URL=...
+DATABASE_URL=... (Tuy chon nếu dùng Supabase SDK)
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_ANON_KEY=your-anon-key
 TIMEZONE=Asia/Ho_Chi_Minh
 PORT=3000
-WEBHOOK_URL=https://your-app.fly.dev
+# WEBHOOK_URL=https://your-app.fly.dev
 # KEEP_AWAKE_URL=https://your-app.fly.dev/health
-# ADMIN_TELEGRAM_IDS=123456789,987654321
 LOG_LEVEL=info
 NODE_ENV=production
+```ODE_ENV=production
 ```
 
 ## Local Run

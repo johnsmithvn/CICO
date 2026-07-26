@@ -83,22 +83,25 @@
     </section>
 
     <!-- ─── Footer Stats ─── -->
-    <footer class="app-footer" id="appFooter">
-      <div class="footer-stat">
-        <span class="footer-stat__dot footer-stat__dot--today"></span>
-        <span class="footer-stat__label">Hôm nay</span>
-        <span class="footer-stat__value" id="visitToday">--</span>
+    <footer class="app-footer app-footer--hidden" id="appFooter">
+      <div class="footer-stats-content" id="footerStatsContent">
+        <div class="footer-stat">
+          <span class="footer-stat__dot footer-stat__dot--today"></span>
+          <span class="footer-stat__label">Hôm nay</span>
+          <span class="footer-stat__value" id="visitToday">--</span>
+        </div>
+        <div class="footer-stat">
+          <span class="footer-stat__dot footer-stat__dot--month"></span>
+          <span class="footer-stat__label">Tháng</span>
+          <span class="footer-stat__value" id="visitMonth">--</span>
+        </div>
+        <div class="footer-stat">
+          <span class="footer-stat__dot footer-stat__dot--total"></span>
+          <span class="footer-stat__label">Tổng</span>
+          <span class="footer-stat__value" id="visitTotal">--</span>
+        </div>
       </div>
-      <div class="footer-stat">
-        <span class="footer-stat__dot footer-stat__dot--month"></span>
-        <span class="footer-stat__label">Tháng</span>
-        <span class="footer-stat__value" id="visitMonth">--</span>
-      </div>
-      <div class="footer-stat">
-        <span class="footer-stat__dot footer-stat__dot--total"></span>
-        <span class="footer-stat__label">Tổng</span>
-        <span class="footer-stat__value" id="visitTotal">--</span>
-      </div>
+      <div class="footer-brand" id="footerBrand">CI/CO — Chấm Công Tuần</div>
     </footer>
   </div>
 

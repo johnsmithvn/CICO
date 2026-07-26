@@ -703,6 +703,38 @@
         else closeModal();
       }
     });
+
+    setupSecretStatsToggle();
+  }
+
+  // ─── Secret Stats Toggle ───
+  function setupSecretStatsToggle() {
+    var SHOW_KEY = 'cico_show_stats';
+    var footerBrand = $('footerBrand');
+    var appFooter = $('appFooter');
+    if (!footerBrand || !appFooter) return;
+
+    if (localStorage.getItem(SHOW_KEY) === 'true') {
+      appFooter.classList.remove('app-footer--hidden');
+    }
+
+    var clickCount = 0;
+    var clickTimer = null;
+
+    footerBrand.addEventListener('click', function () {
+      clickCount++;
+      if (clickTimer) clearTimeout(clickTimer);
+
+      if (clickCount >= 3) {
+        clickCount = 0;
+        var isHidden = appFooter.classList.toggle('app-footer--hidden');
+        localStorage.setItem(SHOW_KEY, (!isHidden).toString());
+      } else {
+        clickTimer = setTimeout(function () {
+          clickCount = 0;
+        }, 600);
+      }
+    });
   }
 
   // ─── Silent Visitor Tracking ───
