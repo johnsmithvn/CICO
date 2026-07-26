@@ -65,11 +65,12 @@ async function bootstrap(): Promise<void> {
         }
       }
 
-      const stats = await getVisitStats(env.TIMEZONE);
+      const stats = await getVisitStats(env.TIMEZONE || "Asia/Ho_Chi_Minh");
       res.json({ ok: true, stats });
     } catch (error) {
       logger.error({ error }, "Visit tracking endpoint error");
-      res.json({ ok: false, stats: { today: 0, month: 0, total: 0 } });
+      const msg = error instanceof Error ? error.message : String(error);
+      res.json({ ok: false, error: msg, stats: { today: 0, month: 0, total: 0 } });
     }
   });
 

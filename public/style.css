@@ -1120,19 +1120,48 @@ body::before {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.75rem;
+  gap: 1.25rem;
   flex-wrap: wrap;
   font-size: 0.8rem;
   color: var(--text-muted);
   border-top: 1px dashed rgba(148, 163, 184, 0.15);
 }
 
-.footer-stat strong {
-  color: var(--text-secondary);
-  font-weight: 600;
+.footer-stat {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
 }
 
-.footer-dot {
-  opacity: 0.4;
+.footer-stat__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.footer-stat__dot--today {
+  background: var(--accent);
+  box-shadow: 0 0 6px var(--accent-glow);
+}
+
+.footer-stat__dot--month {
+  background: #a78bfa;
+  box-shadow: 0 0 6px rgba(167, 139, 250, 0.4);
+}
+
+.footer-stat__dot--total {
+  background: var(--success);
+  box-shadow: 0 0 6px var(--success-dim);
+}
+
+.footer-stat__label {
+  color: var(--text-muted);
+}
+
+.footer-stat__value {
+  color: var(--text-primary);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
 }
 

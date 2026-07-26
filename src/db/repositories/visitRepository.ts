@@ -49,8 +49,9 @@ export async function recordVisit(visitorId?: string, ipAddress?: string, userAg
   );
 }
 
-export async function getVisitStats(timezone: string = "Asia/Ho_Chi_Minh"): Promise<VisitStats> {
+export async function getVisitStats(timezone?: string): Promise<VisitStats> {
   await ensureTableExists();
+  const tz = timezone || "Asia/Ho_Chi_Minh";
   const result = await query<{ today: string; month: string; total: string }>(
     `
       SELECT
@@ -59,7 +60,7 @@ export async function getVisitStats(timezone: string = "Asia/Ho_Chi_Minh"): Prom
         COUNT(*) AS total
       FROM page_visits
     `,
-    [timezone]
+    [tz]
   );
 
   const row = result.rows[0];

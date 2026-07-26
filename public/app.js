@@ -733,7 +733,7 @@
       })
         .then(function (res) { return res.json(); })
         .then(function (data) {
-          if (data && data.ok && data.stats) {
+          if (data && data.stats) {
             if ($('visitToday')) $('visitToday').textContent = data.stats.today.toLocaleString('vi-VN');
             if ($('visitMonth')) $('visitMonth').textContent = data.stats.month.toLocaleString('vi-VN');
             if ($('visitTotal')) $('visitTotal').textContent = data.stats.total.toLocaleString('vi-VN');
