@@ -1,6 +1,14 @@
+import dns from "node:dns";
 import { Pool, PoolClient, QueryResult, QueryResultRow, types } from "pg";
 import { env } from "../config/env";
 import { logger } from "../logger";
+
+// Render containers do not have IPv6 routes; force Node.js to prefer IPv4 DNS resolution
+try {
+  dns.setDefaultResultOrder("ipv4first");
+} catch (_e) {
+  // Ignore in environments where method is unsupported
+}
 
 // Keep DATE columns as raw YYYY-MM-DD strings to avoid timezone shifts.
 types.setTypeParser(1082, (value) => value);
@@ -10,7 +18,9 @@ export const pool = new Pool({
   max: 10,
   idleTimeoutMillis: 30_000,
   ssl:
-    env.DATABASE_URL.includes("sslmode=require") || env.DATABASE_URL.includes("supabase.co")
+    env.DATABASE_URL.includes("sslmode=require") ||
+    env.DATABASE_URL.includes("supabase") ||
+    env.DATABASE_URL.includes("pooler")
       ? { rejectUnauthorized: false }
       : undefined
 });
