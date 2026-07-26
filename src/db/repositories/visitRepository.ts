@@ -1,4 +1,6 @@
+import { createClient, SupabaseClient } from "@supabase/supabase-js";
 import { query } from "../postgres";
+import { env } from "../../config/env";
 
 export interface VisitStats {
   today: number;
@@ -6,51 +8,94 @@ export interface VisitStats {
   total: number;
 }
 
+const supabaseUrl = env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+const supabaseKey = env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY;
+
+let supabaseClient: SupabaseClient | null = null;
+if (supabaseUrl && supabaseKey) {
+  supabaseClient = createClient(supabaseUrl, supabaseKey);
+}
+
 let isTableInitialized = false;
 
 async function ensureTableExists(): Promise<void> {
   if (isTableInitialized) return;
-  try {
+  if (!supabaseClient) {
     try {
-      await query(`CREATE EXTENSION IF NOT EXISTS pgcrypto;`);
+      await query(`
+        CREATE TABLE IF NOT EXISTS page_visits (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          visited_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+          visitor_id TEXT,
+          ip_address TEXT,
+          user_agent TEXT
+        )
+      `);
+      await query(`ALTER TABLE page_visits ADD COLUMN IF NOT EXISTS visitor_id TEXT`);
+      isTableInitialized = true;
     } catch (_e) {
-      // pgcrypto might not be allowed on non-superuser DB, ignore
+      isTableInitialized = true;
     }
-
-    await query(`
-      CREATE TABLE IF NOT EXISTS page_visits (
-        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-        visited_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-        visitor_id TEXT,
-        ip_address TEXT,
-        user_agent TEXT
-      )
-    `);
-
-    await query(`ALTER TABLE page_visits ADD COLUMN IF NOT EXISTS visitor_id TEXT`);
-    await query(`CREATE INDEX IF NOT EXISTS page_visits_visited_at_idx ON page_visits(visited_at)`);
-    await query(`CREATE INDEX IF NOT EXISTS page_visits_visitor_id_idx ON page_visits(visitor_id)`);
-
+  } else {
     isTableInitialized = true;
-  } catch (error) {
-    console.error("Failed to ensure page_visits table exists:", error);
-    throw error;
   }
 }
 
 export async function recordVisit(visitorId?: string, ipAddress?: string, userAgent?: string): Promise<void> {
   await ensureTableExists();
-  await query(
-    `
-      INSERT INTO page_visits (visitor_id, ip_address, user_agent)
-      VALUES ($1, $2, $3)
-    `,
-    [visitorId || null, ipAddress || null, userAgent || null]
-  );
+  if (supabaseClient) {
+    await supabaseClient.from("page_visits").insert({
+      visitor_id: visitorId || null,
+      ip_address: ipAddress || null,
+      user_agent: userAgent || null
+    });
+  } else {
+    await query(
+      `
+        INSERT INTO page_visits (visitor_id, ip_address, user_agent)
+        VALUES ($1, $2, $3)
+      `,
+      [visitorId || null, ipAddress || null, userAgent || null]
+    );
+  }
 }
 
 export async function getVisitStats(timezone?: string): Promise<VisitStats> {
   await ensureTableExists();
+
+  if (supabaseClient) {
+    try {
+      const now = new Date();
+
+      // 1. Total count
+      const { count: totalCount } = await supabaseClient
+        .from("page_visits")
+        .select("*", { count: "exact", head: true });
+
+      // 2. Today count (start of today local time)
+      const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
+      const { count: todayCount } = await supabaseClient
+        .from("page_visits")
+        .select("*", { count: "exact", head: true })
+        .gte("visited_at", startOfToday);
+
+      // 3. Month count (start of current month)
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+      const { count: monthCount } = await supabaseClient
+        .from("page_visits")
+        .select("*", { count: "exact", head: true })
+        .gte("visited_at", startOfMonth);
+
+      return {
+        today: todayCount || 0,
+        month: monthCount || 0,
+        total: totalCount || 0
+      };
+    } catch (_e) {
+      return { today: 0, month: 0, total: 0 };
+    }
+  }
+
   const tz = timezone || "Asia/Ho_Chi_Minh";
   const result = await query<{ today: string; month: string; total: string }>(
     `

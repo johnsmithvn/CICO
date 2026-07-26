@@ -1,11 +1,3 @@
-import dns from "node:dns";
-
-try {
-  dns.setDefaultResultOrder("ipv4first");
-} catch (_e) {
-  // Ignore
-}
-
 import express from "express";
 import path from "path";
 import { createTelegramBot } from "./bot/telegram";

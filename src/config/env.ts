@@ -26,6 +26,8 @@ const envSchema = z.object({
         : []
     ),
   API_SECRET: z.string().min(1).optional(),
+  SUPABASE_URL: z.string().optional(),
+  SUPABASE_ANON_KEY: z.string().optional(),
   LOG_LEVEL: z.enum(["fatal", "error", "warn", "info", "debug", "trace"]).default("info"),
   NODE_ENV: z.enum(["development", "test", "production"]).default("development")
 });
