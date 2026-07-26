@@ -69,7 +69,7 @@ async function bootstrap(): Promise<void> {
       res.json({ ok: true, stats });
     } catch (error) {
       logger.error({ error }, "Visit tracking endpoint error");
-      res.status(500).json({ ok: false, error: "Internal server error" });
+      res.json({ ok: false, stats: { today: 0, month: 0, total: 0 } });
     }
   });
 

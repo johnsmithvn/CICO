@@ -11,6 +11,12 @@ let isTableInitialized = false;
 async function ensureTableExists(): Promise<void> {
   if (isTableInitialized) return;
   try {
+    try {
+      await query(`CREATE EXTENSION IF NOT EXISTS pgcrypto;`);
+    } catch (_e) {
+      // pgcrypto might not be allowed on non-superuser DB, ignore
+    }
+
     await query(`
       CREATE TABLE IF NOT EXISTS page_visits (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -18,15 +24,17 @@ async function ensureTableExists(): Promise<void> {
         visitor_id TEXT,
         ip_address TEXT,
         user_agent TEXT
-      );
-      ALTER TABLE page_visits ADD COLUMN IF NOT EXISTS visitor_id TEXT;
-      CREATE INDEX IF NOT EXISTS page_visits_visited_at_idx ON page_visits(visited_at);
-      CREATE INDEX IF NOT EXISTS page_visits_visitor_id_idx ON page_visits(visitor_id);
+      )
     `);
+
+    await query(`ALTER TABLE page_visits ADD COLUMN IF NOT EXISTS visitor_id TEXT`);
+    await query(`CREATE INDEX IF NOT EXISTS page_visits_visited_at_idx ON page_visits(visited_at)`);
+    await query(`CREATE INDEX IF NOT EXISTS page_visits_visitor_id_idx ON page_visits(visitor_id)`);
+
     isTableInitialized = true;
   } catch (error) {
-    // Ignore parallel races
-    isTableInitialized = true;
+    console.error("Failed to ensure page_visits table exists:", error);
+    throw error;
   }
 }
 

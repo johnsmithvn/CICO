@@ -84,11 +84,21 @@
 
     <!-- ─── Footer Stats ─── -->
     <footer class="app-footer" id="appFooter">
-      <span class="footer-stat">👁️ Hôm nay: <strong id="visitToday">--</strong></span>
-      <span class="footer-dot">•</span>
-      <span class="footer-stat">📅 Tháng: <strong id="visitMonth">--</strong></span>
-      <span class="footer-dot">•</span>
-      <span class="footer-stat">📊 Tổng: <strong id="visitTotal">--</strong></span>
+      <div class="footer-stat">
+        <span class="footer-stat__dot footer-stat__dot--today"></span>
+        <span class="footer-stat__label">Hôm nay</span>
+        <span class="footer-stat__value" id="visitToday">--</span>
+      </div>
+      <div class="footer-stat">
+        <span class="footer-stat__dot footer-stat__dot--month"></span>
+        <span class="footer-stat__label">Tháng</span>
+        <span class="footer-stat__value" id="visitMonth">--</span>
+      </div>
+      <div class="footer-stat">
+        <span class="footer-stat__dot footer-stat__dot--total"></span>
+        <span class="footer-stat__label">Tổng</span>
+        <span class="footer-stat__value" id="visitTotal">--</span>
+      </div>
     </footer>
   </div>
 
