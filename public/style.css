@@ -265,6 +265,15 @@ body::before {
   background: var(--accent-dim);
 }
 
+.stat-card--danger {
+  border-color: rgba(239, 68, 68, 0.45);
+  background: rgba(239, 68, 68, 0.12);
+}
+
+.stat-card--danger .stat-card__value {
+  color: #f87171;
+}
+
 .stat-card__value {
   display: block;
   font-size: 1.25rem;
@@ -283,6 +292,43 @@ body::before {
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.05em;
+}
+
+/* ─── KPI Alert Banner ─── */
+.kpi-alert-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.85rem 1.25rem;
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  border-radius: var(--radius-md);
+  margin-bottom: 1.25rem;
+  color: #fecaca;
+  font-size: 0.85rem;
+  line-height: 1.4;
+  backdrop-filter: blur(16px);
+  box-shadow: 0 0 20px rgba(239, 68, 68, 0.15);
+}
+
+.kpi-alert-banner__icon {
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+.kpi-alert-banner__content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.summary__progress-fill--danger {
+  background: linear-gradient(90deg, #dc2626, #ef4444) !important;
+  box-shadow: 0 0 16px rgba(239, 68, 68, 0.4);
+}
+
+.summary__progress-glow--danger {
+  background: linear-gradient(90deg, transparent 60%, rgba(239, 68, 68, 0.5)) !important;
 }
 
 /* ================================================================
@@ -329,6 +375,15 @@ body::before {
   border-color: rgba(16, 185, 129, 0.3);
 }
 
+.day-card--under-target {
+  border-color: rgba(239, 68, 68, 0.45);
+  box-shadow: 0 0 16px rgba(239, 68, 68, 0.12);
+}
+
+.day-card--under-target:hover {
+  border-color: var(--danger);
+}
+
 .day-card--sunday {
   opacity: 0.5;
   cursor: default;
@@ -368,6 +423,11 @@ body::before {
   box-shadow: 0 0 8px rgba(16, 185, 129, 0.5);
 }
 
+.day-card__status--under {
+  background: var(--danger);
+  box-shadow: 0 0 8px rgba(239, 68, 68, 0.6);
+}
+
 .day-card__status--empty {
   background: var(--text-muted);
   opacity: 0.4;
@@ -400,6 +460,28 @@ body::before {
   font-size: 1.1rem;
   font-weight: 700;
   color: var(--success);
+}
+
+.day-card__duration--under {
+  color: var(--danger) !important;
+}
+
+.day-card__under-diff {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #f87171;
+  margin-left: 0.25rem;
+}
+
+.day-card__under-badge {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #f87171;
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  border-radius: 4px;
+  padding: 0.1rem 0.35rem;
+  line-height: 1;
 }
 
 .day-card__today-badge {
@@ -619,6 +701,11 @@ body::before {
   line-height: 1;
 }
 
+.report-v2__ring-pct--danger {
+  color: #ef4444 !important;
+  text-shadow: 0 0 20px rgba(239, 68, 68, 0.5);
+}
+
 .report-v2__ring-sub {
   font-size: 0.7rem;
   color: var(--text-muted);
@@ -749,6 +836,19 @@ body::before {
   margin-top: 0.25rem;
 }
 
+.report-v2__heat-cell--under {
+  border-color: rgba(239, 68, 68, 0.4) !important;
+  background: rgba(239, 68, 68, 0.12) !important;
+}
+
+.report-v2__heat-bar-fill--under {
+  background: linear-gradient(90deg, #dc2626, #ef4444) !important;
+}
+
+.report-v2__heat-val--under {
+  color: #ef4444 !important;
+}
+
 /* Insight Card */
 .report-v2__insight {
   display: flex;
@@ -759,6 +859,11 @@ body::before {
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
   line-height: 1.6;
+}
+
+.report-v2__insight--danger {
+  border-color: rgba(239, 68, 68, 0.4);
+  background: rgba(239, 68, 68, 0.08);
 }
 
 .report-v2__insight-icon {
@@ -779,6 +884,7 @@ body::before {
 /* Utility text colors */
 .text-success { color: var(--success); }
 .text-warning { color: var(--warning); }
+.text-danger { color: #ef4444; }
 .text-muted { color: var(--text-muted); font-size: 0.8rem; }
 
 /* ================================================================

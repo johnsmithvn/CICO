@@ -247,25 +247,96 @@
     $('weekRange').textContent = fmtDateShort(start) + ' → ' + fmtDateShort(end) + '/' + end.getFullYear();
   }
 
+  function getDisplayPercent(total, target) {
+    if (total <= 0) return 0;
+    if (total >= target) return 100;
+    var raw = (total / target) * 100;
+    // CRITICAL: Never round up to 100% if target is not yet reached
+    return Math.min(99, Math.floor(raw));
+  }
+
+  function getVisualFillWidth(total, target) {
+    if (total <= 0) return 0;
+    if (total >= target) return 100;
+    var raw = (total / target) * 100;
+    // Leave a visible gap when remaining > 0 so the rounded bar doesn't appear 100% full
+    return Math.min(98, Math.max(1, raw));
+  }
+
+  function isMonToFriFilled() {
+    var days = getWeekDays();
+    var count = 0;
+    for (var i = 0; i < days.length; i++) {
+      var d = days[i];
+      if (d.dayOfWeek >= 1 && d.dayOfWeek <= 5) {
+        if (getDayMinutes(d.entry) > 0) count++;
+      }
+    }
+    return count === 5;
+  }
+
   function renderSummary() {
     var total = getWeeklyTotal();
     var remaining = Math.max(0, WEEKLY_TARGET - total);
-    var pct = Math.min(100, (total / WEEKLY_TARGET) * 100);
+    var isComplete = total >= WEEKLY_TARGET;
+    var isMonFriFilled = isMonToFriFilled();
+    var isShortfall = isMonFriFilled && !isComplete;
+
+    var displayPct = getDisplayPercent(total, WEEKLY_TARGET);
+    var fillWidth = getVisualFillWidth(total, WEEKLY_TARGET);
+
     var daysLeft = getWorkdaysLeft();
     var required = getBurndownRequired();
 
-    $('progressFill').style.width = pct + '%';
-    $('progressGlow').style.width = pct + '%';
-    $('workedLabel').textContent = fmtMinutes(total);
+    var progressFill = $('progressFill');
+    var progressGlow = $('progressGlow');
+    progressFill.style.width = fillWidth + '%';
+    progressGlow.style.width = fillWidth + '%';
+
+    if (isShortfall) {
+      progressFill.classList.add('summary__progress-fill--danger');
+      progressGlow.classList.add('summary__progress-glow--danger');
+    } else {
+      progressFill.classList.remove('summary__progress-fill--danger');
+      progressGlow.classList.remove('summary__progress-glow--danger');
+    }
+
+    $('workedLabel').textContent = fmtMinutes(total) + ' (' + displayPct + '%)';
     $('targetLabel').textContent = fmtMinutes(WEEKLY_TARGET);
     $('totalWorked').textContent = fmtMinutes(total);
     $('remaining').textContent = fmtMinutes(remaining);
     $('avgPerDay').textContent = remaining <= 0 ? '✅ Done' : fmtMinutes(required);
     $('daysWorked').textContent = getDaysWorked() + '/6';
+
+    var remainingCard = $('remainingCard');
+    if (remainingCard) {
+      if (isShortfall) {
+        remainingCard.className = 'stat-card stat-card--danger';
+      } else {
+        remainingCard.className = 'stat-card stat-card--accent';
+      }
+    }
+
+    var alertBanner = $('kpiAlertBanner');
+    if (alertBanner) {
+      if (isShortfall) {
+        alertBanner.style.display = 'flex';
+        alertBanner.innerHTML =
+          '<span class="kpi-alert-banner__icon">🚨</span>' +
+          '<div class="kpi-alert-banner__content">' +
+          '<strong>Cảnh báo KPI: Đã điền đủ Thứ 2 → Thứ 6 nhưng chưa đạt 44h!</strong>' +
+          '<span>Đã log 5 ngày làm việc nhưng mới đạt <strong>' + fmtMinutes(total) + ' (' + displayPct + '%)</strong>, còn thiếu <strong class="text-danger">' + fmtMinutes(remaining) + '</strong>. Cần điền thêm ngày Thứ 7 hoặc bù giờ!</span>' +
+          '</div>';
+      } else {
+        alertBanner.style.display = 'none';
+        alertBanner.innerHTML = '';
+      }
+    }
   }
 
   function renderDayGrid() {
     var days = getWeekDays();
+    var total = getWeeklyTotal();
     var grid = $('dayGrid');
     var ordered = days;
     var html = '';
@@ -277,12 +348,15 @@
       var hasData = mins > 0;
       var isSunday = day.dayOfWeek === 0;
       var isEditing = editingDate === day.date;
+      var isUnder8h = hasData && mins < DAILY_TARGET && !(day.dayOfWeek === 6 && total >= WEEKLY_TARGET);
 
       if (!isSunday && !hasData) hasEmpty = true;
 
       var classes = 'day-card';
       if (day.isToday) classes += ' day-card--today';
-      if (hasData) classes += ' day-card--has-data';
+      if (hasData) {
+        classes += isUnder8h ? ' day-card--under-target' : ' day-card--has-data';
+      }
       if (isSunday) classes += ' day-card--sunday';
       if (isEditing) classes += ' day-card--editing';
 
@@ -297,13 +371,20 @@
       html += '<span class="day-card__date">' + day.dateShort + '</span></div>';
       if (hasData && !isEditing) {
         html += '<div class="day-card__header-actions">';
+        if (isUnder8h) {
+          html += '<span class="day-card__under-badge" title="Chưa đủ 8 tiếng">&lt; 8h</span>';
+        }
         html += '<button class="day-card__edit-btn" data-action="modal" data-date="' + day.date + '" title="Sửa">✏️</button>';
         html += '<button class="day-card__delete-btn" data-action="delete" data-date="' + day.date + '" title="Xóa">✕</button>';
         html += '</div>';
       } else {
-        html += '<div class="day-card__status' +
-          (hasData ? ' day-card__status--done' : ' day-card__status--empty') +
-          '"></div>';
+        var statusClass = 'day-card__status';
+        if (hasData) {
+          statusClass += isUnder8h ? ' day-card__status--under' : ' day-card__status--done';
+        } else {
+          statusClass += ' day-card__status--empty';
+        }
+        html += '<div class="' + statusClass + '"></div>';
       }
       html += '</div>';
 
@@ -324,7 +405,9 @@
         html += '<span>' + day.entry.checkIn + ' → ' + day.entry.checkOut + '</span>';
         html += '<span class="day-card__modal-link" data-action="modal" data-date="' + day.date + '" title="Tùy chỉnh">⏰</span>';
         html += '</div>';
-        html += '<div class="day-card__duration">' + fmtMinutes(mins) + '</div>';
+        var durationClass = isUnder8h ? 'day-card__duration day-card__duration--under' : 'day-card__duration';
+        var underDiff = isUnder8h ? ' <span class="day-card__under-diff">(-' + fmtMinutes(DAILY_TARGET - mins) + ')</span>' : '';
+        html += '<div class="' + durationClass + '">' + fmtMinutes(mins) + underDiff + '</div>';
       } else if (isSunday) {
         html += '<div class="day-card__empty">Nghỉ 😴</div>';
       } else {
@@ -384,17 +467,26 @@
     var days = getWeekDays();
     var total = getWeeklyTotal();
     var remaining = Math.max(0, WEEKLY_TARGET - total);
-    var pct = Math.min(100, (total / WEEKLY_TARGET) * 100);
+    var isComplete = total >= WEEKLY_TARGET;
+    var surplus = total - WEEKLY_TARGET;
+    var isMonFriFilled = isMonToFriFilled();
+    var isShortfall = isMonFriFilled && !isComplete;
+
+    var displayPct = getDisplayPercent(total, WEEKLY_TARGET);
+    var ringPct = isComplete ? 100 : Math.min(98, (total / WEEKLY_TARGET) * 100);
+
     var daysLeft = getWorkdaysLeft();
     var required = getBurndownRequired();
     var daysWorked = getDaysWorked();
-    var isComplete = total >= WEEKLY_TARGET;
-    var surplus = total - WEEKLY_TARGET;
 
     // ─── Radial Progress Ring ───
     var circumference = 2 * Math.PI * 54; // r=54
-    var offset = circumference - (pct / 100) * circumference;
-    var ringColor = isComplete ? 'var(--success)' : (pct >= 70 ? 'var(--accent)' : (pct >= 40 ? 'var(--warning)' : 'var(--danger)'));
+    var offset = circumference - (ringPct / 100) * circumference;
+    var ringColor = isComplete
+      ? 'var(--success)'
+      : (isShortfall
+        ? 'var(--danger)'
+        : (displayPct >= 70 ? 'var(--accent)' : (displayPct >= 40 ? 'var(--warning)' : 'var(--danger)')));
 
     var html = '<div class="report-v2">';
 
@@ -410,14 +502,16 @@
     html += 'stroke-linecap="round" transform="rotate(-90 60 60)" class="report-v2__ring-fill"/>';
     html += '</svg>';
     html += '<div class="report-v2__ring-center">';
-    html += '<span class="report-v2__ring-pct">' + Math.round(pct) + '%</span>';
+    var ringPctClass = 'report-v2__ring-pct' + (isShortfall ? ' report-v2__ring-pct--danger' : '');
+    html += '<span class="' + ringPctClass + '">' + displayPct + '%</span>';
     html += '<span class="report-v2__ring-sub">' + fmtMinutes(total) + '</span>';
     html += '</div></div>';
 
     // Quick stats
     html += '<div class="report-v2__quick-stats">';
     html += '<div class="report-v2__stat">';
-    html += '<span class="report-v2__stat-val">' + fmtMinutes(remaining) + '</span>';
+    var statRemainingClass = 'report-v2__stat-val' + (isShortfall ? ' text-danger' : '');
+    html += '<span class="' + statRemainingClass + '">' + fmtMinutes(remaining) + '</span>';
     html += '<span class="report-v2__stat-lbl">Còn thiếu</span></div>';
     html += '<div class="report-v2__stat">';
     html += '<span class="report-v2__stat-val">' + fmtMinutes(required) + '</span>';
@@ -433,9 +527,12 @@
       var day = days[i];
       var mins = getDayMinutes(day.entry);
       var dayPct = Math.min(100, (mins / DAILY_TARGET) * 100);
+      var isDayUnder8h = mins > 0 && mins < DAILY_TARGET && !(day.dayOfWeek === 6 && total >= WEEKLY_TARGET);
+
       var heatClass = 'report-v2__heat-cell';
       if (day.isToday) heatClass += ' report-v2__heat-cell--today';
       if (day.dayOfWeek === 0) heatClass += ' report-v2__heat-cell--off';
+      if (isDayUnder8h) heatClass += ' report-v2__heat-cell--under';
 
       // Heat intensity
       var heatLevel = mins === 0 ? 0 : (mins < DAILY_TARGET * 0.5 ? 1 : (mins < DAILY_TARGET ? 2 : (mins < DAILY_TARGET * 1.25 ? 3 : 4)));
@@ -443,8 +540,10 @@
       html += '<div class="' + heatClass + '" data-heat="' + heatLevel + '">';
       html += '<div class="report-v2__heat-day">' + day.dayName + '</div>';
       if (mins > 0) {
-        html += '<div class="report-v2__heat-bar-track"><div class="report-v2__heat-bar-fill" style="width:' + dayPct + '%"></div></div>';
-        html += '<div class="report-v2__heat-val">' + fmtMinutes(mins) + '</div>';
+        var barFillClass = isDayUnder8h ? 'report-v2__heat-bar-fill report-v2__heat-bar-fill--under' : 'report-v2__heat-bar-fill';
+        var valClass = isDayUnder8h ? 'report-v2__heat-val report-v2__heat-val--under' : 'report-v2__heat-val';
+        html += '<div class="report-v2__heat-bar-track"><div class="' + barFillClass + '" style="width:' + dayPct + '%"></div></div>';
+        html += '<div class="' + valClass + '">' + fmtMinutes(mins) + '</div>';
       } else if (day.dayOfWeek === 0) {
         html += '<div class="report-v2__heat-off">OFF</div>';
       } else {
@@ -456,17 +555,26 @@
     html += '</div>';
 
     // ── Burndown insight ──
-    html += '<div class="report-v2__insight">';
     if (isComplete) {
+      html += '<div class="report-v2__insight">';
       html += '<div class="report-v2__insight-icon">🎉</div>';
       html += '<div class="report-v2__insight-text">';
       html += '<strong>KPI tuần hoàn thành!</strong><br>';
       html += 'Vượt <span class="text-success">' + fmtMinutes(surplus) + '</span>. ';
       html += 'Vẫn phải làm đủ 8h/ngày nhưng khỏi lo OT!';
-      html += '</div>';
+      html += '</div></div>';
+    } else if (isShortfall) {
+      html += '<div class="report-v2__insight report-v2__insight--danger">';
+      html += '<div class="report-v2__insight-icon">🚨</div>';
+      html += '<div class="report-v2__insight-text">';
+      html += '<strong class="text-danger">Đã điền đủ Thứ 2 → Thứ 6 nhưng chưa đạt KPI 44h!</strong><br>';
+      html += 'Đã log đủ 5 ngày làm việc nhưng mới đạt <strong>' + fmtMinutes(total) + '</strong> (còn thiếu <span class="text-danger"><strong>' + fmtMinutes(remaining) + '</strong></span>).<br>';
+      html += '<span class="text-danger">⚠ Cần điền thêm ngày Thứ 7 hoặc bù giờ các ngày để hoàn thành 44 tiếng!</span>';
+      html += '</div></div>';
     } else {
       var avgWorked = daysWorked > 0 ? Math.round(total / daysWorked) : 0;
       var paceIcon = required > DAILY_TARGET * 1.25 ? '🔴' : (required > DAILY_TARGET ? '🟡' : '🟢');
+      html += '<div class="report-v2__insight">';
       html += '<div class="report-v2__insight-icon">' + paceIcon + '</div>';
       html += '<div class="report-v2__insight-text">';
       html += 'Còn <strong>' + fmtMinutes(remaining) + '</strong> trong <strong>' + daysLeft + ' ngày</strong>';
@@ -479,9 +587,8 @@
       } else if (required <= DAILY_TARGET) {
         html += '<br><span class="text-success">✓ Đang đi đúng tiến độ</span>';
       }
-      html += '</div>';
+      html += '</div></div>';
     }
-    html += '</div>';
 
     html += '</div>'; // .report-v2
     $('reportChart').innerHTML = html;
@@ -728,7 +835,11 @@
       if (clickCount >= 3) {
         clickCount = 0;
         var isHidden = appFooter.classList.toggle('app-footer--hidden');
-        localStorage.setItem(SHOW_KEY, (!isHidden).toString());
+        var isShowing = !isHidden;
+        localStorage.setItem(SHOW_KEY, isShowing.toString());
+        if (isShowing) {
+          trackVisit(true); // Force fetch stats when user reveals it
+        }
       } else {
         clickTimer = setTimeout(function () {
           clickCount = 0;
@@ -748,14 +859,22 @@
     return vid;
   }
 
-  function trackVisit() {
+  function trackVisit(forceFetch) {
     try {
       var SESSION_KEY = 'cico_visited_session';
+      var SHOW_KEY = 'cico_show_stats';
+      var isShowing = localStorage.getItem(SHOW_KEY) === 'true';
+
       var visitorId = getOrCreateVisitorId();
       var record = false;
       if (!sessionStorage.getItem(SESSION_KEY)) {
         record = true;
         sessionStorage.setItem(SESSION_KEY, '1');
+      }
+
+      // TỐI ƯU SIÊU NHẸ: Nếu giao diện đếm đang ẨN và phiên này đã ghi nhận rồi -> Không call API!
+      if (!record && !isShowing && !forceFetch) {
+        return;
       }
 
       fetch('/api/visits', {
@@ -765,14 +884,14 @@
       })
         .then(function (res) { return res.json(); })
         .then(function (data) {
-          if (data && data.stats) {
+          if (data && data.stats && (localStorage.getItem(SHOW_KEY) === 'true' || forceFetch)) {
             if ($('visitToday')) $('visitToday').textContent = data.stats.today.toLocaleString('vi-VN');
             if ($('visitMonth')) $('visitMonth').textContent = data.stats.month.toLocaleString('vi-VN');
             if ($('visitTotal')) $('visitTotal').textContent = data.stats.total.toLocaleString('vi-VN');
           }
         })
         .catch(function () {
-          // Silent catch — user experience is never impacted
+          // Silent catch
         });
     } catch (e) {
       // Silent catch

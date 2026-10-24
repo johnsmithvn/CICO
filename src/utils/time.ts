@@ -221,10 +221,14 @@ export function isMonthEnd(date: Date, timezoneName: string): boolean {
 
 export function buildProgressBar(workedMinutes: number, targetMinutes: number, width = 16): string {
   if (targetMinutes <= 0) {
-    return "[----------------]";
+    return `[${"-".repeat(width)}]`;
   }
-  const ratio = Math.max(0, Math.min(1, workedMinutes / targetMinutes));
-  const done = Math.round(ratio * width);
+  if (workedMinutes >= targetMinutes) {
+    return `[${"#".repeat(width)}]`;
+  }
+  const ratio = Math.max(0, workedMinutes / targetMinutes);
+  // Ensure that if target is not met, the bar never appears completely full
+  const done = Math.min(width - 1, Math.floor(ratio * width));
   return `[${"#".repeat(done)}${"-".repeat(Math.max(0, width - done))}]`;
 }
 
