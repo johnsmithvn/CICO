@@ -1,6 +1,7 @@
 /* ================================================================
    CI/CO Dashboard — Design System
-   Dark theme, glassmorphism, cyan accent
+   Tối (đêm trăng) & sáng (hoàng hôn), glassmorphism, cyan accent
+   Nền trời động ở sky.css, đổi theme ở theme.js
    ================================================================ */
 
 /* ─── Reset & Variables ─── */
@@ -13,7 +14,9 @@
 }
 
 :root {
-  --bg-body: #06090f;
+  color-scheme: dark;
+
+  --bg-body: #04060e;
   --bg-primary: #0a0e1a;
   --bg-secondary: #111827;
   --bg-card: rgba(30, 41, 59, 0.6);
@@ -32,25 +35,76 @@
   --warning-dim: rgba(245, 158, 11, 0.15);
   --danger: #ef4444;
   --danger-dim: rgba(239, 68, 68, 0.15);
+  --danger-text: #f87171;
+  --danger-banner-text: #fecaca;
 
   --text-primary: #f1f5f9;
   --text-secondary: #94a3b8;
   --text-muted: #64748b;
+  --on-accent: #0a0e1a;
 
   --border: rgba(148, 163, 184, 0.1);
   --border-accent: rgba(6, 182, 212, 0.3);
+  --track: rgba(148, 163, 184, 0.1);
+  --footer-line: rgba(148, 163, 184, 0.15);
+  --overlay: rgba(0, 0, 0, 0.7);
 
   --radius-sm: 8px;
   --radius-md: 12px;
   --radius-lg: 16px;
   --radius-xl: 20px;
 
+  --shadow-panel: none;
+  --sky-text-shadow: 0 2px 14px rgba(0, 0, 0, 0.55);
   --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.3);
   --shadow-modal: 0 24px 64px rgba(0, 0, 0, 0.6);
   --shadow-glow: 0 0 32px var(--accent-glow);
 
   --font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ─── Light theme: kính trắng trên trời hoàng hôn ─── */
+:root[data-theme="light"] {
+  color-scheme: light;
+
+  --bg-body: #ecdcf0;
+  --bg-primary: rgba(226, 232, 240, 0.6);
+  --bg-secondary: #f8fafc;
+  --bg-card: rgba(255, 255, 255, 0.62);
+  --bg-card-hover: rgba(255, 255, 255, 0.85);
+  --bg-modal: rgba(255, 255, 255, 0.96);
+  --bg-input: rgba(255, 255, 255, 0.92);
+
+  --accent: #0891b2;
+  --accent-light: #0e7490;
+  --accent-dim: rgba(8, 145, 178, 0.1);
+  --accent-glow: rgba(8, 145, 178, 0.28);
+
+  --success: #059669;
+  --success-dim: rgba(5, 150, 105, 0.12);
+  --warning: #d97706;
+  --warning-dim: rgba(217, 119, 6, 0.12);
+  --danger: #dc2626;
+  --danger-dim: rgba(220, 38, 38, 0.1);
+  --danger-text: #dc2626;
+  --danger-banner-text: #991b1b;
+
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #64748b;
+  --on-accent: #ffffff;
+
+  --border: rgba(15, 23, 42, 0.08);
+  --border-accent: rgba(8, 145, 178, 0.35);
+  --track: rgba(148, 163, 184, 0.22);
+  --footer-line: rgba(100, 116, 139, 0.25);
+  --overlay: rgba(15, 23, 42, 0.35);
+
+  --shadow-panel: 0 1px 2px rgba(15, 23, 42, 0.04), 0 10px 30px -14px rgba(30, 64, 120, 0.22);
+  --sky-text-shadow: 0 1px 12px rgba(255, 255, 255, 0.7);
+  --shadow-card: 0 8px 28px -8px rgba(30, 64, 120, 0.22);
+  --shadow-modal: 0 24px 64px rgba(15, 23, 42, 0.2);
 }
 
 html {
@@ -67,16 +121,18 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* ─── Animated BG ─── */
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  background:
-    radial-gradient(ellipse 60% 40% at 20% 10%, rgba(6, 182, 212, 0.06) 0%, transparent 60%),
-    radial-gradient(ellipse 50% 50% at 80% 80%, rgba(16, 185, 129, 0.04) 0%, transparent 60%);
-  pointer-events: none;
-  z-index: 0;
+/* ─── Đổi theme: lan tròn từ nút (theme.js, View Transitions API) ─── */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+/* Trong lúc lan tròn, ảnh theme mới phải hiện ngay màu đích — chỉ nút chuyển được trượt */
+.theme-switching *:not(.theme-toggle, .theme-toggle *),
+.theme-switching *:not(.theme-toggle, .theme-toggle *)::before,
+.theme-switching *:not(.theme-toggle, .theme-toggle *)::after {
+  transition: none !important;
 }
 
 /* ─── App Container ─── */
@@ -88,69 +144,184 @@ body::before {
   padding: 1.5rem 1rem 3rem;
 }
 
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 /* ================================================================
-   HEADER
+   HEADER — không khung: giờ, ngày, nút chuyển nằm trần trên bầu trời,
+   chừa khoảng trời phía trên cho trăng/mặt trời và máy bay
    ================================================================ */
 .header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 1.25rem 1.5rem;
-  background: var(--bg-card);
-  backdrop-filter: blur(16px);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  margin-bottom: 1.25rem;
+  justify-content: flex-end;
+  gap: 1.25rem;
+  padding: 3rem 0.25rem 2rem;
 }
 
-.header__brand {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.header__logo {
-  width: 48px;
-  height: 48px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--accent-dim);
-  border: 1px solid var(--border-accent);
-  border-radius: var(--radius-md);
-  font-size: 1.5rem;
-}
-
-.header__title {
-  font-size: 1.5rem;
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  background: linear-gradient(135deg, var(--accent-light), var(--accent));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.header__subtitle {
-  font-size: 0.8rem;
-  color: var(--text-muted);
-  font-weight: 400;
-}
-
-.header__right {
+.header__time {
   text-align: right;
 }
 
 .header__clock {
-  font-size: 1.25rem;
-  font-weight: 600;
+  font-size: 2.5rem;
+  font-weight: 300;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;
   color: var(--text-primary);
+  text-shadow: var(--sky-text-shadow);
 }
 
 .header__date {
-  font-size: 0.8rem;
-  color: var(--text-muted);
+  margin-top: 0.15rem;
+  font-size: 0.85rem;
+  letter-spacing: 0.03em;
+  color: var(--text-secondary);
+  text-shadow: var(--sky-text-shadow);
+}
+
+/* ─── Theme Toggle: trời đêm có trăng ⇄ trời xanh có mặt trời ─── */
+.theme-toggle {
+  --w: 68px;
+  --h: 34px;
+  --knob: 26px;
+  --pad: 3px;
+  --travel: calc(var(--w) - var(--knob) - var(--pad) * 2 - 2px);
+
+  position: relative;
+  flex-shrink: 0;
+  width: var(--w);
+  height: var(--h);
+  padding: 0;
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  border-radius: 999px;
+  background: #0b1026;
+  cursor: pointer;
+  overflow: hidden;
+  isolation: isolate;
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.45);
+  transition: border-color 0.5s ease, box-shadow 0.25s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.theme-toggle:hover {
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.45), 0 0 0 4px var(--accent-dim);
+}
+
+.theme-toggle:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.theme-toggle__sky {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  transition: opacity 0.5s ease, transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Đêm: trời sao, sao nằm bên trái (trăng ở phải) */
+.theme-toggle__sky--night {
+  background:
+    radial-gradient(1px 1px at 10px 9px, #fff, transparent),
+    radial-gradient(1.5px 1.5px at 19px 21px, #fff, transparent),
+    radial-gradient(1px 1px at 27px 8px, rgba(200, 230, 255, 0.9), transparent),
+    radial-gradient(1px 1px at 33px 18px, #fff, transparent),
+    radial-gradient(1px 1px at 8px 24px, rgba(255, 240, 210, 0.9), transparent),
+    linear-gradient(135deg, #070b1f 0%, #18214a 60%, #2b3a7a 100%);
+}
+
+/* Hoàng hôn: trời tím hồng cam + mây bên phải (mặt trời ở trái) */
+.theme-toggle__sky--day {
+  opacity: 0;
+  transform: translateY(6px);
+  background:
+    radial-gradient(9px 7px at 44px 24px, #fff6f2 60%, transparent 66%),
+    radial-gradient(8px 7px at 54px 21px, #fff6f2 60%, transparent 66%),
+    radial-gradient(10px 6px at 60px 27px, #fde4dc 60%, transparent 66%),
+    radial-gradient(6px 4px at 38px 12px, rgba(255, 246, 242, 0.85) 60%, transparent 66%),
+    linear-gradient(160deg, #a5b4fc 0%, #f0abcf 50%, #fdba74 100%);
+}
+
+.theme-toggle__knob {
+  position: absolute;
+  z-index: 1;
+  top: 50%;
+  left: var(--pad);
+  width: var(--knob);
+  height: var(--knob);
+  margin-top: calc(var(--knob) / -2);
+  border-radius: 50%;
+  background: radial-gradient(circle at 34% 30%, #ffffff, #e5e7eb 55%, #cbd5e1);
+  box-shadow: 0 0 10px 2px rgba(226, 232, 240, 0.4), inset -2px -3px 4px rgba(100, 116, 139, 0.35);
+  transform: translateX(var(--travel)) rotate(0deg);
+  transition: transform 0.6s cubic-bezier(0.68, -0.35, 0.27, 1.35), box-shadow 0.5s ease;
+}
+
+/* Miệng núi lửa trên trăng */
+.theme-toggle__knob::before,
+.theme-toggle__knob::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  transition: opacity 0.4s ease;
+}
+
+.theme-toggle__knob::before {
+  background:
+    radial-gradient(circle at 62% 34%, rgba(148, 163, 184, 0.55) 0 3px, transparent 3.5px),
+    radial-gradient(circle at 36% 64%, rgba(148, 163, 184, 0.45) 0 4px, transparent 4.5px),
+    radial-gradient(circle at 70% 70%, rgba(148, 163, 184, 0.4) 0 2px, transparent 2.5px);
+}
+
+/* Lớp mặt trời lặn phủ lên, hiện ở theme sáng */
+.theme-toggle__knob::after {
+  opacity: 0;
+  background: radial-gradient(circle at 45% 36%, #ffe8cc 0%, #fdba8c 40%, #fb8a5c 75%, #f2709c 100%);
+}
+
+/* Ở theme sáng: núm lăn sang trái thành mặt trời lặn */
+[data-theme="light"] .theme-toggle {
+  border-color: rgba(244, 114, 182, 0.45);
+  box-shadow: inset 0 2px 5px rgba(157, 23, 77, 0.22);
+}
+
+[data-theme="light"] .theme-toggle:hover {
+  box-shadow: inset 0 2px 5px rgba(157, 23, 77, 0.22), 0 0 0 4px var(--accent-dim);
+}
+
+[data-theme="light"] .theme-toggle__sky--night {
+  opacity: 0;
+  transform: translateY(-6px);
+}
+
+[data-theme="light"] .theme-toggle__sky--day {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+[data-theme="light"] .theme-toggle__knob {
+  transform: translateX(0) rotate(-200deg);
+  box-shadow: 0 0 10px 2px rgba(251, 146, 60, 0.5), 0 0 2px rgba(190, 18, 60, 0.35);
+}
+
+[data-theme="light"] .theme-toggle__knob::before {
+  opacity: 0;
+}
+
+[data-theme="light"] .theme-toggle__knob::after {
+  opacity: 1;
 }
 
 /* ================================================================
@@ -165,6 +336,7 @@ body::before {
   backdrop-filter: blur(16px);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
+  box-shadow: var(--shadow-panel);
   margin-bottom: 1.25rem;
 }
 
@@ -191,6 +363,7 @@ body::before {
   backdrop-filter: blur(16px);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-panel);
   padding: 1.5rem;
   margin-bottom: 1.5rem;
 }
@@ -271,7 +444,7 @@ body::before {
 }
 
 .stat-card--danger .stat-card__value {
-  color: #f87171;
+  color: var(--danger-text);
 }
 
 .stat-card__value {
@@ -304,7 +477,7 @@ body::before {
   border: 1px solid rgba(239, 68, 68, 0.4);
   border-radius: var(--radius-md);
   margin-bottom: 1.25rem;
-  color: #fecaca;
+  color: var(--danger-banner-text);
   font-size: 0.85rem;
   line-height: 1.4;
   backdrop-filter: blur(16px);
@@ -353,6 +526,7 @@ body::before {
   backdrop-filter: blur(16px);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
+  box-shadow: var(--shadow-panel);
   padding: 1rem;
   cursor: pointer;
   transition: var(--transition);
@@ -469,14 +643,14 @@ body::before {
 .day-card__under-diff {
   font-size: 0.75rem;
   font-weight: 500;
-  color: #f87171;
+  color: var(--danger-text);
   margin-left: 0.25rem;
 }
 
 .day-card__under-badge {
   font-size: 0.65rem;
   font-weight: 700;
-  color: #f87171;
+  color: var(--danger-text);
   background: rgba(239, 68, 68, 0.15);
   border: 1px solid rgba(239, 68, 68, 0.35);
   border-radius: 4px;
@@ -489,7 +663,7 @@ body::before {
   top: 0;
   right: 0;
   background: var(--accent);
-  color: var(--bg-primary);
+  color: var(--on-accent);
   font-size: 0.6rem;
   font-weight: 700;
   text-transform: uppercase;
@@ -624,7 +798,7 @@ body::before {
 
 .fill-all-btn:hover {
   background: var(--accent);
-  color: var(--bg-primary);
+  color: var(--on-accent);
   box-shadow: 0 0 20px var(--accent-glow);
 }
 
@@ -636,6 +810,7 @@ body::before {
   backdrop-filter: blur(16px);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-panel);
   padding: 1.5rem;
 }
 
@@ -702,7 +877,7 @@ body::before {
 }
 
 .report-v2__ring-pct--danger {
-  color: #ef4444 !important;
+  color: var(--danger) !important;
   text-shadow: 0 0 20px rgba(239, 68, 68, 0.5);
 }
 
@@ -804,7 +979,7 @@ body::before {
 
 .report-v2__heat-bar-track {
   height: 4px;
-  background: rgba(148, 163, 184, 0.1);
+  background: var(--track);
   border-radius: 999px;
   overflow: hidden;
   margin-bottom: 0.3rem;
@@ -846,7 +1021,7 @@ body::before {
 }
 
 .report-v2__heat-val--under {
-  color: #ef4444 !important;
+  color: var(--danger) !important;
 }
 
 /* Insight Card */
@@ -884,7 +1059,7 @@ body::before {
 /* Utility text colors */
 .text-success { color: var(--success); }
 .text-warning { color: var(--warning); }
-.text-danger { color: #ef4444; }
+.text-danger { color: var(--danger); }
 .text-muted { color: var(--text-muted); font-size: 0.8rem; }
 
 /* ================================================================
@@ -893,7 +1068,7 @@ body::before {
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.7);
+  background: var(--overlay);
   backdrop-filter: blur(8px);
   display: flex;
   align-items: center;
@@ -1066,7 +1241,7 @@ body::before {
 
 .btn--primary {
   background: var(--accent);
-  color: #0a0e1a;
+  color: var(--on-accent);
 }
 
 .btn--primary:hover {
@@ -1200,14 +1375,18 @@ body::before {
     padding: 1rem 0.75rem 2rem;
   }
 
+  /* Trăng ở góc phải trên → giờ và nút chuyển ở giữa, thấp xuống dưới trăng */
   .header {
-    flex-direction: column;
-    gap: 0.75rem;
-    text-align: center;
+    justify-content: center;
+    padding: 4rem 0 1.5rem;
   }
 
-  .header__right {
-    text-align: center;
+  .header__clock {
+    font-size: 2rem;
+  }
+
+  .header__date {
+    font-size: 0.8rem;
   }
 
   .summary__cards {
@@ -1230,7 +1409,7 @@ body::before {
   gap: 0.5rem;
   font-size: 0.8rem;
   color: var(--text-muted);
-  border-top: 1px dashed rgba(148, 163, 184, 0.15);
+  border-top: 1px dashed var(--footer-line);
 }
 
 .footer-brand {

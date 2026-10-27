@@ -1,0 +1,783 @@
+/* ================================================================
+   CI/CO — Nền trời động (theme.js dựng DOM vào #sky và #skyFront)
+   Tối: đêm trăng — cực quang, Ngân Hà, 4 lớp sao, sao sáng 4 cánh,
+        trăng theo pha thật (có chú Cuội), sao chổi, thành phố lên đèn,
+        mưa sao băng nhiều màu, thỉnh thoảng mưa bão sao băng và cầu lửa.
+   Sáng: hoàng hôn — trời tím hồng cam, mặt trời lặn dịu mắt, mây ráng chiều,
+        hạt nắng bay lên, bầy chim bay ngang.
+   Cả hai: máy bay kéo băng rôn câu khích lệ (lớp trước, bay ngang nội dung).
+   Chỉ animate transform/opacity để chạy trên GPU.
+   ================================================================ */
+
+.sky {
+  --orb-size: 76px;
+  --orb-top: 64px;
+  --orb-right: max(4%, calc((100vw - 960px) / 2 - 140px));
+
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  contain: strict;
+}
+
+/* Lớp trước: trên .app (z 1), dưới modal/toast; không nhận chuột, trong suốt */
+.sky--front {
+  z-index: 5;
+}
+
+.sky--front .sky__layer {
+  background: none;
+}
+
+.sky__layer {
+  position: absolute;
+  inset: 0;
+  transition: opacity 0.9s ease;
+}
+
+.sky__layer > * {
+  position: absolute;
+  pointer-events: none;
+}
+
+.sky-host {
+  inset: 0;
+}
+
+/* Chỉ hiện 1 lớp; lớp ẩn dừng animation cho nhẹ máy */
+:root[data-theme="light"] .sky__night,
+:root:not([data-theme="light"]) .sky__day {
+  opacity: 0;
+}
+
+:root[data-theme="light"] .sky__night *,
+:root:not([data-theme="light"]) .sky__day * {
+  animation-play-state: paused;
+}
+
+/* ================================================================
+   ĐÊM
+   ================================================================ */
+.sky__night {
+  background:
+    radial-gradient(120% 60% at 50% 120%, rgba(88, 28, 135, 0.35) 0%, transparent 60%),
+    linear-gradient(180deg, #03050d 0%, #060a1a 40%, #0c1233 100%);
+}
+
+.sky-aurora {
+  left: -15%;
+  right: -15%;
+  top: -35%;
+  height: 80%;
+  background:
+    radial-gradient(34% 55% at 18% 45%, rgba(34, 211, 238, 0.16), transparent 70%),
+    radial-gradient(28% 48% at 52% 30%, rgba(52, 245, 197, 0.09), transparent 70%),
+    radial-gradient(34% 58% at 84% 38%, rgba(139, 92, 246, 0.2), transparent 70%);
+  animation: skyAurora 24s ease-in-out infinite alternate;
+  will-change: transform;
+}
+
+/* Dải Ngân Hà chéo + bụi sao trong dải */
+.sky-milkyway {
+  left: -25%;
+  top: -6%;
+  width: 150%;
+  height: 320px;
+  transform: rotate(-14deg);
+  background:
+    radial-gradient(50% 50% at 50% 50%, rgba(190, 205, 255, 0.13), rgba(170, 190, 240, 0.05) 50%, transparent 75%),
+    radial-gradient(30% 40% at 34% 55%, rgba(200, 180, 255, 0.11), transparent 70%),
+    radial-gradient(25% 35% at 70% 45%, rgba(140, 240, 215, 0.08), transparent 70%);
+}
+
+.sky-milkyway--dust {
+  background-image:
+    radial-gradient(1px 1px at 8px 10px, #fff, transparent),
+    radial-gradient(1px 1px at 30px 34px, rgba(220, 230, 255, 0.9), transparent),
+    radial-gradient(1px 1px at 52px 18px, #fff, transparent),
+    radial-gradient(1px 1px at 20px 44px, rgba(255, 240, 220, 0.9), transparent),
+    radial-gradient(1px 1px at 62px 40px, #fff, transparent);
+  background-size: 70px 50px;
+  -webkit-mask-image: radial-gradient(50% 42% at 50% 50%, #000, transparent);
+  mask-image: radial-gradient(50% 42% at 50% 50%, #000, transparent);
+  animation: skyTwinkleSoft 9s ease-in-out infinite;
+}
+
+/* 4 lớp sao, mờ dần về phía thành phố */
+.sky-stars {
+  inset: 0;
+  -webkit-mask-image: linear-gradient(to bottom, #000, transparent var(--fade));
+  mask-image: linear-gradient(to bottom, #000, transparent var(--fade));
+}
+
+.sky-stars--0 {
+  --fade: 78%;
+  background-image:
+    radial-gradient(1px 1px at 10px 14px, #fff, transparent),
+    radial-gradient(1px 1px at 46px 60px, rgba(220, 230, 255, 0.9), transparent),
+    radial-gradient(1px 1px at 88px 22px, #fff, transparent),
+    radial-gradient(1px 1px at 112px 78px, rgba(255, 245, 220, 0.9), transparent),
+    radial-gradient(1px 1px at 70px 90px, #fff, transparent),
+    radial-gradient(1px 1px at 28px 44px, rgba(200, 255, 235, 0.8), transparent);
+  background-size: 130px 96px;
+  opacity: 0.7;
+}
+
+.sky-stars--1 {
+  --fade: 85%;
+  background-image:
+    radial-gradient(1.5px 1.5px at 12px 18px, #fff, transparent),
+    radial-gradient(1px 1px at 86px 64px, #fff, transparent),
+    radial-gradient(1.5px 1.5px at 150px 30px, rgba(190, 255, 240, 1), transparent),
+    radial-gradient(1px 1px at 210px 122px, #fff, transparent),
+    radial-gradient(1.5px 1.5px at 40px 150px, rgba(255, 240, 210, 0.95), transparent);
+  background-size: 240px 180px;
+  animation: skyTwinkle 4.5s ease-in-out -1s infinite;
+}
+
+.sky-stars--2 {
+  --fade: 88%;
+  background-image:
+    radial-gradient(2px 2px at 60px 40px, rgba(210, 200, 255, 1), transparent),
+    radial-gradient(1.5px 1.5px at 170px 110px, #fff, transparent),
+    radial-gradient(1.5px 1.5px at 280px 20px, #fff, transparent),
+    radial-gradient(2px 2px at 330px 150px, rgba(167, 255, 235, 1), transparent);
+  background-size: 360px 220px;
+}
+
+.sky-stars--3 {
+  --fade: 75%;
+  background-image:
+    radial-gradient(2.5px 2.5px at 90px 60px, #fff, transparent),
+    radial-gradient(2px 2px at 400px 200px, rgba(255, 236, 200, 1), transparent),
+    radial-gradient(2.5px 2.5px at 260px 120px, rgba(200, 215, 255, 1), transparent);
+  background-size: 520px 300px;
+  animation: skyTwinkle 6.5s ease-in-out -3s infinite;
+}
+
+/* Sao sáng 4 cánh */
+.sky-bright-star {
+  background:
+    radial-gradient(circle, #fff 0, #fff 1.2px, rgba(210, 225, 255, 0.6) 2.5px, transparent 5px),
+    linear-gradient(90deg, transparent, rgba(215, 228, 255, 0.85), transparent) 50% 50% / 100% 1px no-repeat,
+    linear-gradient(0deg, transparent, rgba(215, 228, 255, 0.85), transparent) 50% 50% / 1px 100% no-repeat;
+  filter: drop-shadow(0 0 4px rgba(200, 220, 255, 0.9));
+  animation: skyStarPulse 5s ease-in-out infinite;
+}
+
+/* Trăng: SVG có pha thật (theme.js tính), quầng sáng thở chậm */
+.sky-moon-halo {
+  top: calc(var(--orb-top) + var(--orb-size) / 2 - var(--orb-size) * 3.5);
+  right: calc(var(--orb-right) + var(--orb-size) / 2 - var(--orb-size) * 3.5);
+  width: calc(var(--orb-size) * 7);
+  height: calc(var(--orb-size) * 7);
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(210, 222, 250, var(--halo, 0.2)), rgba(210, 222, 250, 0.04) 55%, transparent);
+  animation: skyHalo 14s ease-in-out infinite alternate;
+}
+
+.sky-moon {
+  top: var(--orb-top);
+  right: var(--orb-right);
+  width: var(--orb-size);
+  height: var(--orb-size);
+  overflow: visible;
+  animation: skyMoonFloat 18s ease-in-out infinite alternate;
+}
+
+/* Sao chổi bay ngang hiếm hoi */
+.sky-comet {
+  top: 9%;
+  left: 104%;
+  width: 0;
+  height: 0;
+  opacity: 0;
+  animation: skyComet 38s linear 6s infinite;
+}
+
+.sky-comet__tail {
+  position: absolute;
+  left: 0;
+  top: -1.5px;
+  width: 300px;
+  height: 3px;
+  border-radius: 2px;
+  transform-origin: 0 50%;
+  transform: rotate(-10deg);
+  background: linear-gradient(90deg, rgba(225, 255, 248, 0.95), rgba(94, 242, 194, 0.5) 18%, rgba(139, 92, 246, 0.22) 55%, transparent);
+  filter: blur(1px);
+}
+
+.sky-comet__head {
+  position: absolute;
+  left: -4px;
+  top: -4px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 14px 5px rgba(190, 255, 240, 0.85), 0 0 46px 14px rgba(94, 242, 194, 0.35);
+}
+
+/* ─── Thành phố lên đèn (theme.js vẽ SVG: dãy xa mờ xanh, dãy gần tối, cửa sổ sáng) ─── */
+.sky-city-glow {
+  left: -10%;
+  right: -10%;
+  bottom: 0;
+  height: 42%;
+  background:
+    radial-gradient(55% 60% at 30% 100%, rgba(251, 146, 60, 0.16), transparent 70%),
+    radial-gradient(50% 70% at 75% 100%, rgba(236, 72, 153, 0.12), transparent 70%),
+    radial-gradient(80% 55% at 50% 100%, rgba(139, 92, 246, 0.16), transparent 75%);
+  animation: skyHalo 12s ease-in-out infinite alternate;
+}
+
+.sky-city {
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  overflow: visible;
+}
+
+.sky-city--far {
+  height: 190px;
+  opacity: 0.85;
+}
+
+.sky-city--near {
+  height: 160px;
+}
+
+.sky-city--far .city-lights {
+  opacity: 0.55;
+}
+
+/* Đèn bật/tắt từng cụm: đổi theo bậc (steps) nên chỉ vẽ lại vài lần mỗi chu kỳ */
+.city-blink {
+  animation: skyCityBlink 9s steps(1, end) infinite;
+}
+
+.city-blink--2 {
+  animation-duration: 13s;
+  animation-delay: -4s;
+}
+
+.city-blink--3 {
+  animation-duration: 17s;
+  animation-delay: -9s;
+}
+
+.city-beacon {
+  animation: skyBeacon 1.8s steps(1, end) infinite;
+}
+
+/* Mưa sao băng: theme.js thả .meteor, tự xoá khi bay xong.
+   Gốc xoay ở đầu sao (mép phải) → đuôi dài dần phía sau khi bay */
+.meteor {
+  position: absolute;
+  height: 1.6px;
+  border-radius: 999px;
+  transform-origin: 100% 50%;
+  background: linear-gradient(90deg, transparent, rgba(125, 211, 252, 0.3) 45%, rgba(220, 245, 255, 0.9) 88%, #fff);
+  opacity: 0;
+  animation: skyMeteor 1.2s cubic-bezier(0.3, 0.1, 0.5, 1) forwards;
+}
+
+.meteor::after {
+  content: '';
+  position: absolute;
+  right: -2px;
+  top: 50%;
+  width: 4px;
+  height: 4px;
+  margin-top: -2px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 8px 3px rgba(190, 240, 255, 0.85), 0 0 18px 6px rgba(34, 211, 238, 0.35);
+}
+
+.meteor--gold {
+  background: linear-gradient(90deg, transparent, rgba(251, 191, 36, 0.3) 45%, rgba(254, 240, 200, 0.92) 88%, #fffbeb);
+}
+
+.meteor--gold::after {
+  box-shadow: 0 0 8px 3px rgba(254, 240, 200, 0.85), 0 0 18px 6px rgba(251, 146, 60, 0.4);
+}
+
+.meteor--violet {
+  background: linear-gradient(90deg, transparent, rgba(167, 139, 250, 0.3) 45%, rgba(233, 213, 255, 0.9) 88%, #fff);
+}
+
+.meteor--violet::after {
+  box-shadow: 0 0 8px 3px rgba(233, 213, 255, 0.85), 0 0 18px 6px rgba(167, 139, 250, 0.45);
+}
+
+.meteor--big {
+  height: 2.2px;
+}
+
+/* Cầu lửa: sao băng lớn hiếm, bay ở lớp trước */
+.fireball {
+  position: absolute;
+  height: 3px;
+  border-radius: 999px;
+  transform-origin: 100% 50%;
+  background: linear-gradient(90deg, transparent, rgba(251, 146, 60, 0.25) 35%, rgba(253, 230, 138, 0.85) 80%, #fffbeb);
+  opacity: 0;
+  animation: skyMeteor 2.4s cubic-bezier(0.25, 0.1, 0.4, 1) forwards;
+}
+
+.fireball::before {
+  content: '';
+  position: absolute;
+  left: 25%;
+  right: 0;
+  top: -5px;
+  bottom: -5px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, transparent, rgba(251, 146, 60, 0.4));
+  filter: blur(5px);
+}
+
+.fireball::after {
+  content: '';
+  position: absolute;
+  right: -5px;
+  top: 50%;
+  width: 10px;
+  height: 10px;
+  margin-top: -5px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow:
+    0 0 12px 5px rgba(254, 240, 200, 0.95),
+    0 0 34px 12px rgba(251, 146, 60, 0.55),
+    0 0 70px 24px rgba(251, 191, 36, 0.22);
+}
+
+/* ================================================================
+   NGÀY — HOÀNG HÔN
+   ================================================================ */
+.sky__day {
+  background: linear-gradient(180deg, #c9d3fb 0%, #dcd2f7 24%, #f2d3ea 52%, #fcd9c8 78%, #fdcfae 100%);
+}
+
+.sky-dusk-glow {
+  inset: -15%;
+  background:
+    radial-gradient(45% 40% at 12% 0%, rgba(165, 180, 252, 0.5), transparent 70%),
+    radial-gradient(40% 40% at 60% 6%, rgba(216, 180, 254, 0.45), transparent 70%),
+    radial-gradient(45% 45% at 92% 30%, rgba(251, 164, 175, 0.4), transparent 70%),
+    radial-gradient(60% 42% at 70% 100%, rgba(253, 186, 116, 0.5), transparent 70%),
+    radial-gradient(42% 38% at 12% 92%, rgba(244, 114, 182, 0.35), transparent 70%);
+  animation: skyGlowDrift 20s ease-in-out infinite alternate;
+  will-change: transform;
+}
+
+.sky-light-band {
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 45%;
+  background: linear-gradient(to top, rgba(251, 146, 60, 0.22), rgba(244, 114, 182, 0.12) 40%, rgba(192, 132, 252, 0.06) 70%, transparent);
+}
+
+/* Mặt trời lặn: cùng chỗ với trăng (đổi theme thấy trăng "hoá" mặt trời),
+   màu cam hồng, quầng mềm, không chói */
+.sky-sun-halo {
+  top: calc(var(--orb-top) + var(--orb-size) / 2 - var(--orb-size) * 3.5);
+  right: calc(var(--orb-right) + var(--orb-size) / 2 - var(--orb-size) * 3.5);
+  width: calc(var(--orb-size) * 7);
+  height: calc(var(--orb-size) * 7);
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(253, 186, 116, 0.42), rgba(244, 114, 182, 0.14) 45%, transparent);
+  animation: skySunBreath 10s ease-in-out infinite alternate;
+}
+
+.sky-sun {
+  top: var(--orb-top);
+  right: var(--orb-right);
+  width: var(--orb-size);
+  height: var(--orb-size);
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 38%, #ffe8cc 0%, #fdba8c 38%, #fb8a5c 70%, #f2709c 100%);
+  box-shadow:
+    0 0 22px 4px rgba(251, 146, 60, 0.35),
+    0 0 60px 18px rgba(244, 114, 182, 0.18);
+  opacity: 0.95;
+}
+
+/* Vệt mây tím vắt ngang mặt trời lặn */
+.sky-sun-streaks {
+  top: calc(var(--orb-top) + var(--orb-size) * 0.52);
+  right: calc(var(--orb-right) - var(--orb-size) * 0.9);
+  width: calc(var(--orb-size) * 2.8);
+  height: calc(var(--orb-size) * 0.5);
+  background:
+    radial-gradient(50% 50% at 50% 50%, rgba(196, 165, 230, 0.85), rgba(196, 165, 230, 0) 70%) 0 0 / 70% 38% no-repeat,
+    radial-gradient(50% 50% at 50% 50%, rgba(214, 170, 220, 0.75), rgba(214, 170, 220, 0) 70%) 100% 60% / 65% 32% no-repeat,
+    radial-gradient(50% 50% at 50% 50%, rgba(230, 180, 210, 0.6), rgba(230, 180, 210, 0) 70%) 30% 100% / 55% 28% no-repeat;
+  animation: skyDrift 26s ease-in-out infinite alternate;
+  --dx: -18px;
+}
+
+/* Mây ráng chiều: lớp ngoài trôi ngang, svg trong nhấp nhô */
+.sky-cloud {
+  animation: skyDrift 60s ease-in-out infinite alternate;
+  will-change: transform;
+}
+
+.sky-cloud svg {
+  display: block;
+  overflow: visible;
+  animation: skyBob 8s ease-in-out infinite alternate;
+}
+
+/* Hạt nắng bay lên */
+.sky-mote {
+  border-radius: 50%;
+  opacity: 0;
+  animation: skyFloatUp 18s ease-in-out infinite;
+}
+
+/* ─── Bầy chim (lớp trước): chữ V, đàn lớn, đôi chim; bay cả hai chiều ─── */
+.flock {
+  position: absolute;
+  left: 0;
+  animation: skyFlock 28s linear forwards;
+}
+
+.flock__bird {
+  position: absolute;
+  width: 22px;
+  height: 10px;
+  animation: skyBob 2.6s ease-in-out infinite alternate;
+  --by: 5px;
+}
+
+.flock__bird svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  fill: none;
+  stroke: var(--bird, rgba(51, 65, 85, 0.6));
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transform-origin: 50% 55%;
+  animation: skyFlap 0.38s ease-in-out infinite alternate;
+}
+
+/* Vỗ cánh mấy nhịp rồi lượn */
+.flock__bird--glide svg {
+  animation: skyFlapGlide 2.4s ease-in-out infinite;
+}
+
+/* ================================================================
+   MÁY BAY KÉO BĂNG RÔN (lớp trước)
+   ================================================================ */
+.plane {
+  position: absolute;
+  left: 0;
+  animation: skyPlaneFly 22s linear forwards;
+  will-change: transform;
+}
+
+.plane__rig {
+  display: flex;
+  align-items: center;
+  animation: skyBob 3.2s ease-in-out infinite alternate;
+  --by: 10px;
+}
+
+.plane__flag {
+  flex-shrink: 0;
+}
+
+.plane__banner {
+  position: relative;
+  display: block;
+  height: 30px;
+  padding: 0 16px 0 24px;
+  font: 700 13px/30px var(--font);
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  /* Đuôi băng rôn xẻ chữ V */
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%, 11px 50%);
+  transform-origin: 100% 50%;
+  animation: skyBannerWave 1.6s ease-in-out infinite alternate;
+}
+
+.plane__rope {
+  flex-shrink: 0;
+  width: 36px;
+  height: 30px;
+  overflow: visible;
+  fill: none;
+  stroke-width: 1.2;
+}
+
+.plane__craft {
+  flex-shrink: 0;
+  width: 80px;
+  height: 36px;
+  overflow: visible;
+  transform-origin: 40% 50%;
+  animation: skyPlaneRock 4s ease-in-out infinite alternate;
+}
+
+.plane__prop {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: skyProp 0.09s linear infinite alternate;
+}
+
+/* Ngày: vải kem viền san hô, chữ xanh ngọc */
+.plane--day .plane__flag {
+  filter: drop-shadow(0 6px 10px rgba(120, 60, 120, 0.2));
+}
+
+.plane--day .plane__banner {
+  color: #0f766e;
+  background: linear-gradient(180deg, #fffdf7, #fff1dc);
+  box-shadow: inset 0 3px 0 #fb7185, inset 0 -3px 0 #fb7185;
+}
+
+.plane--day .plane__rope {
+  stroke: rgba(71, 85, 105, 0.7);
+}
+
+/* Đêm: vải tím than, chữ vàng phát sáng, dây đèn nhấp nháy, đèn hàng không */
+.plane--night .plane__flag {
+  filter: drop-shadow(0 0 12px rgba(129, 140, 248, 0.45));
+}
+
+.plane--night .plane__banner {
+  color: #fde68a;
+  text-shadow: 0 0 8px rgba(251, 191, 36, 0.65);
+  background: linear-gradient(180deg, #312e81, #1e1b4b);
+  box-shadow: inset 0 2px 0 rgba(251, 191, 36, 0.7), inset 0 -2px 0 rgba(251, 191, 36, 0.7);
+}
+
+.plane--night .plane__banner::before,
+.plane--night .plane__banner::after {
+  content: '';
+  position: absolute;
+  left: 14px;
+  right: 6px;
+  height: 4px;
+  background: radial-gradient(circle, #fde68a 0 1.3px, transparent 2px) 0 0 / 11px 4px repeat-x;
+  animation: skyTwinkle 1.1s ease-in-out infinite;
+}
+
+.plane--night .plane__banner::before {
+  top: 3px;
+}
+
+.plane--night .plane__banner::after {
+  bottom: 3px;
+  background-position: 5px 0;
+  animation-delay: -0.55s;
+}
+
+.plane--night .plane__rope {
+  stroke: rgba(203, 213, 225, 0.55);
+}
+
+.plane--night .plane__craft {
+  filter: drop-shadow(0 0 5px rgba(253, 230, 138, 0.3));
+}
+
+.plane__beacon {
+  animation: skyBeacon 1.2s steps(1, end) infinite;
+}
+
+.plane__strobe {
+  animation: skyStrobe 1.6s linear infinite;
+}
+
+/* ================================================================
+   KEYFRAMES
+   ================================================================ */
+@keyframes skyAurora {
+  0% { transform: translate3d(-4%, 0, 0) scaleY(1); }
+  50% { transform: translate3d(2%, 3%, 0) scaleY(1.15); }
+  100% { transform: translate3d(5%, -2%, 0) scaleY(0.94); }
+}
+
+@keyframes skyGlowDrift {
+  0% { transform: translate3d(0, 0, 0) scale(1) rotate(0deg); }
+  50% { transform: translate3d(-5%, 4%, 0) scale(1.1) rotate(2deg); }
+  100% { transform: translate3d(4%, -3%, 0) scale(1.05) rotate(-2deg); }
+}
+
+@keyframes skyTwinkle {
+  0%, 100% { opacity: 0.45; }
+  50% { opacity: 1; }
+}
+
+@keyframes skyTwinkleSoft {
+  0%, 100% { opacity: 0.55; }
+  50% { opacity: 1; }
+}
+
+@keyframes skyStarPulse {
+  0%, 100% { opacity: 0.55; transform: scale(0.8) rotate(0deg); }
+  50% { opacity: 1; transform: scale(1.1) rotate(10deg); }
+}
+
+@keyframes skyHalo {
+  0% { transform: scale(0.94); opacity: 0.85; }
+  100% { transform: scale(1.06); opacity: 1; }
+}
+
+@keyframes skyMoonFloat {
+  0% { transform: translate3d(0, 0, 0); }
+  100% { transform: translate3d(-10px, 6px, 0); }
+}
+
+@keyframes skyComet {
+  0% { transform: translate3d(0, 0, 0); opacity: 0; }
+  4% { opacity: 1; }
+  34% { opacity: 1; }
+  40% { transform: translate3d(-130vw, 26vh, 0); opacity: 0; }
+  100% { transform: translate3d(-130vw, 26vh, 0); opacity: 0; }
+}
+
+@keyframes skyMeteor {
+  0% { transform: rotate(var(--angle)) translate3d(0, 0, 0) scaleX(0.25); opacity: 0; }
+  10% { opacity: 1; }
+  70% { opacity: 1; }
+  100% { transform: rotate(var(--angle)) translate3d(var(--dist), 0, 0) scaleX(1); opacity: 0; }
+}
+
+@keyframes skyCityBlink {
+  0% { opacity: 1; }
+  45% { opacity: 0.12; }
+  70% { opacity: 1; }
+  85% { opacity: 0.4; }
+}
+
+@keyframes skyBeacon {
+  0% { opacity: 0.15; }
+  60% { opacity: 1; }
+  85% { opacity: 0.15; }
+}
+
+@keyframes skyStrobe {
+  0%, 86%, 100% { opacity: 0; }
+  89%, 93% { opacity: 1; }
+}
+
+@keyframes skySunBreath {
+  0% { transform: scale(1); opacity: 0.85; }
+  100% { transform: scale(1.08); opacity: 1; }
+}
+
+@keyframes skyDrift {
+  0% { transform: translate3d(0, 0, 0); }
+  100% { transform: translate3d(var(--dx, 80px), 0, 0); }
+}
+
+@keyframes skyBob {
+  0% { transform: translate3d(0, 0, 0); }
+  100% { transform: translate3d(0, var(--by, 8px), 0); }
+}
+
+@keyframes skyFloatUp {
+  0% { transform: translate3d(0, 0, 0); opacity: 0; }
+  15% { opacity: 0.85; }
+  80% { opacity: 0.85; }
+  100% { transform: translate3d(var(--dx), var(--dy), 0); opacity: 0; }
+}
+
+@keyframes skyFlock {
+  0% { transform: translate3d(var(--from, -220px), 0, 0); }
+  100% { transform: translate3d(var(--to, calc(100vw + 60px)), var(--rise, -40px), 0); }
+}
+
+@keyframes skyFlap {
+  0% { transform: scaleY(1); }
+  100% { transform: scaleY(-0.45); }
+}
+
+@keyframes skyFlapGlide {
+  0%, 16%, 32%, 48%, 100% { transform: scaleY(1); }
+  8%, 24%, 40% { transform: scaleY(-0.45); }
+  72% { transform: scaleY(0.7); }
+}
+
+@keyframes skyPlaneFly {
+  0% { transform: translate3d(calc(-100% - 30px), 0, 0); }
+  100% { transform: translate3d(calc(100vw + 30px), var(--rise, -30px), 0); }
+}
+
+@keyframes skyPlaneRock {
+  0% { transform: rotate(-4deg); }
+  100% { transform: rotate(1.5deg); }
+}
+
+@keyframes skyBannerWave {
+  0% { transform: skewY(-2.5deg) scaleY(0.95); }
+  100% { transform: skewY(2.5deg) scaleY(1.04); }
+}
+
+@keyframes skyProp {
+  0% { transform: scaleY(1); }
+  100% { transform: scaleY(0.15); }
+}
+
+/* ================================================================
+   RESPONSIVE
+   ================================================================ */
+/* Màn chưa đủ rộng để trăng nằm ở lề phải: treo ở khoảng trời trống
+   phía trên, lệch giữa — tránh giờ và nút chuyển ở bên phải */
+@media (max-width: 1240px) {
+  .sky {
+    --orb-size: 56px;
+    --orb-top: 30px;
+    --orb-right: 40%;
+  }
+}
+
+@media (max-width: 640px) {
+  .sky {
+    --orb-size: 52px;
+    --orb-top: 26px;
+    --orb-right: 26px;
+  }
+
+  .sky-comet__tail {
+    width: 170px;
+    height: 2px;
+  }
+
+  .sky-city--far {
+    height: 120px;
+  }
+
+  .sky-city--near {
+    height: 96px;
+  }
+
+  .plane__banner {
+    height: 26px;
+    padding: 0 12px 0 20px;
+    font-size: 11.5px;
+    line-height: 26px;
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%, 9px 50%);
+  }
+
+  .plane__rope {
+    width: 24px;
+    height: 26px;
+  }
+
+  .plane__craft {
+    width: 60px;
+    height: 27px;
+  }
+}

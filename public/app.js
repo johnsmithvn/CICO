@@ -217,6 +217,12 @@
     return Math.max(raw, DAILY_TARGET);
   }
 
+  // Cho theme.js: câu khích lệ trên băng rôn máy bay theo tiến độ tuần
+  window.cicoWeekStats = function () {
+    var remaining = Math.max(0, WEEKLY_TARGET - getWeeklyTotal());
+    return { done: remaining === 0, remaining: remaining, remainingText: fmtMinutes(remaining) };
+  };
+
   // ============================================================
   // RENDERING
   // ============================================================
