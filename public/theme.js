@@ -6,7 +6,7 @@
    - Dựng nền trời (sky.css):
        #sky      (sau nội dung): đêm trăng + thành phố lên đèn + mưa sao băng / hoàng hôn + mây
        #skyFront (trước nội dung): máy bay kéo băng rôn, bầy chim, cầu lửa
-   - Máy bật "giảm chuyển động" vẫn có hiệu ứng, chỉ bỏ mưa bão sao băng.
+   - Hiệu ứng chạy cả khi máy bật "giảm chuyển động" (chủ dự án muốn có chuyển động).
    - Thử nhanh trong console: cicoSky.plane(), cicoSky.flock('cluster'), cicoSky.storm(), cicoSky.fireball()
    ================================================================ */
 
@@ -19,7 +19,6 @@
   var KNOWN_NEW_MOON = Date.UTC(2000, 0, 6, 18, 14); // trăng non 06/01/2000 18:14 UTC
 
   var root = document.documentElement;
-  var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
   var systemLight = window.matchMedia('(prefers-color-scheme: light)');
 
   // ─── Utils ───
@@ -579,9 +578,9 @@
   }
 
   function startSkyLoops() {
-    // Đêm: sao băng ~5s một vệt; mưa bão mỗi 2–3 phút; cầu lửa mỗi 45–75s
+    // Đêm: sao băng ~5s một vệt; mưa bão sao băng cứ 1 phút; cầu lửa mỗi 45–75s
     loop(function () { if (isDark()) spawnMeteor(); }, 4500, 5500, 1500);
-    loop(function () { if (isDark() && !reduceMotion.matches) meteorStorm(); }, 120000, 180000, rand(40000, 60000));
+    loop(function () { if (isDark()) meteorStorm(); }, 60000, 60000, 60000);
     loop(function () { if (isDark()) spawnFireball(); }, 45000, 75000, rand(15000, 25000));
 
     // Hoàng hôn: bầy chim mỗi 7–14s
