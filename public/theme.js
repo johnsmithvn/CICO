@@ -587,8 +587,8 @@
     // Hoàng hôn: bầy chim mỗi 7–14s
     loop(function () { if (!isDark()) spawnFlock(); }, 7000, 14000, rand(1500, 3000));
 
-    // Máy bay kéo băng rôn: ~10s ghé một lượt, mỗi lúc chỉ 1 chiếc (đang bay thì lượt đó bỏ qua)
-    loop(function () { spawnPlane(currentTheme()); }, 9500, 10500, rand(3000, 5000));
+    // Máy bay kéo băng rôn: lượt đầu sau 3s, rồi cứ 30s một lượt (mỗi lúc chỉ 1 chiếc)
+    loop(function () { spawnPlane(currentTheme()); }, 30000, 30000, 3000);
   }
 
   // Đổi qua lại mobile/desktop, hoặc màn rộng hơn lúc vẽ thành phố → dựng lại
