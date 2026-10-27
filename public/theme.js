@@ -6,7 +6,7 @@
    - Dựng nền trời (sky.css):
        #sky      (sau nội dung): đêm trăng + thành phố lên đèn + mưa sao băng / hoàng hôn + mây
        #skyFront (trước nội dung): máy bay kéo băng rôn, bầy chim, cầu lửa
-   - Máy bật "giảm chuyển động" vẫn có hiệu ứng, chỉ thưa hơn và không mưa bão sao băng.
+   - Máy bật "giảm chuyển động" vẫn có hiệu ứng, chỉ bỏ mưa bão sao băng.
    - Thử nhanh trong console: cicoSky.plane(), cicoSky.flock('cluster'), cicoSky.storm(), cicoSky.fireball()
    ================================================================ */
 
@@ -570,29 +570,25 @@
     }
   }
 
-  // Lặp fn sau mỗi min–max ms (tab ẩn thì bỏ lượt); máy bật "giảm chuyển động" thì thưa gấp 1,5 lần
+  // Lặp fn sau mỗi min–max ms (tab ẩn thì bỏ lượt)
   function loop(fn, min, max, first) {
     setTimeout(function tick() {
       if (!document.hidden) fn();
-      setTimeout(tick, rand(min, max) * (reduceMotion.matches ? 1.5 : 1));
+      setTimeout(tick, rand(min, max));
     }, first);
   }
 
   function startSkyLoops() {
-    // Đêm: sao băng mỗi 0,6–2,2s, 20% là cả chùm; mưa bão mỗi 30–55s; cầu lửa mỗi 15–30s
-    loop(function () {
-      if (!isDark()) return;
-      if (Math.random() < (reduceMotion.matches ? 0.08 : 0.2)) meteorBurst(4 + Math.floor(Math.random() * 4));
-      else spawnMeteor();
-    }, 600, 2200, 400);
-    loop(function () { if (isDark() && !reduceMotion.matches) meteorStorm(); }, 30000, 55000, rand(8000, 14000));
-    loop(function () { if (isDark()) spawnFireball(); }, 15000, 30000, rand(5000, 9000));
+    // Đêm: sao băng ~5s một vệt; mưa bão mỗi 2–3 phút; cầu lửa mỗi 45–75s
+    loop(function () { if (isDark()) spawnMeteor(); }, 4500, 5500, 1500);
+    loop(function () { if (isDark() && !reduceMotion.matches) meteorStorm(); }, 120000, 180000, rand(40000, 60000));
+    loop(function () { if (isDark()) spawnFireball(); }, 45000, 75000, rand(15000, 25000));
 
     // Hoàng hôn: bầy chim mỗi 7–14s
     loop(function () { if (!isDark()) spawnFlock(); }, 7000, 14000, rand(1500, 3000));
 
-    // Máy bay kéo băng rôn: lượt đầu sau 3–6s, rồi mỗi 40–70s
-    loop(function () { spawnPlane(currentTheme()); }, 40000, 70000, rand(3000, 6000));
+    // Máy bay kéo băng rôn: ~10s ghé một lượt, mỗi lúc chỉ 1 chiếc (đang bay thì lượt đó bỏ qua)
+    loop(function () { spawnPlane(currentTheme()); }, 9500, 10500, rand(3000, 5000));
   }
 
   // Đổi qua lại mobile/desktop, hoặc màn rộng hơn lúc vẽ thành phố → dựng lại
